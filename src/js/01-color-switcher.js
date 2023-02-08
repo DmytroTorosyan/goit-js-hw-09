@@ -28,6 +28,7 @@ class ColorSwitcher {
     refs.stopBtn.disabled = false;
 
     this.isActive = true;
+    updateBodyBGcolor(getRandomHexColor());
     this.intervalID = setInterval(() => updateBodyBGcolor(getRandomHexColor()), 1000);
   }
 

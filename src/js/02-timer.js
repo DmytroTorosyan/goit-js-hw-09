@@ -17,9 +17,40 @@ refs.start.disabled = true;
 
 let selectedDate;
 
-function checkDateValidity() {
+function dateIsValid() {
+  return selectedDate && (selectedDate - new Date() > 999);
+}
 
-  refs.start.disabled = !selectedDate || (selectedDate <= new Date());
+function stopCountdown() {
+  clearInterval(intervalId);
+  intervalId = null;
+  viewOfTimer(convertMs(0));
+  updateButtonState();
+}
+
+refs.start.addEventListener('click', () => {
+  if (!canStartCountdown()) return;
+
+  intervalId = setInterval(() => {
+    
+    const differenceInTime = selectedDate - new Date();
+
+    if (differenceInTime < 1000) {
+      stopCountdown();
+    }
+    const result = convertMs(differenceInTime);
+    viewOfTimer(result);
+  }, 1000);
+
+  updateButtonState();
+});
+
+function canStartCountdown() {
+  return !intervalId && dateIsValid();
+}
+
+function updateButtonState() {
+  refs.start.disabled = !canStartCountdown(); 
 }
 
 const options = {
@@ -31,31 +62,18 @@ const options = {
     selectedDate = selectedDates[0];
     console.log(selectedDate);
 
-  
-    checkDateValidity();
-
-    if (selectedDate < new Date()) {
+    updateButtonState();
+    
+    if (!dateIsValid()) {
       Notiflix.Notify.failure('Please choose a date in the future!');
-      return;
-    }   
-
-    refs.start.addEventListener('click', () => {
-      intervalId = setInterval(() => {
-        const differenceInTime = selectedDates[0] - new Date();
-
-        if (differenceInTime < 1000) {
-          clearInterval(intervalId);
-        }
-        const result = convertMs(differenceInTime);
-        viewOfTimer(result);
-      }, 1000);
-    });
+      stopCountdown();
+    }
   },
 };
 
 flatpickr('#datetime-picker', options);
 
-setInterval(checkDateValidity, 500);
+
 
 function viewOfTimer({ days, hours, minutes, seconds }) {
   refs.days.textContent = `${days}`;
